@@ -38,7 +38,8 @@ const Header: React.FC<{ activeView: AppView; setActiveView: (view: AppView) => 
     return (
         <header className="bg-gray-800 shadow-md p-2 md:p-4 flex justify-between items-center sticky top-0 z-30">
             <h1 className="text-lg md:text-2xl font-bold text-cyan-400">PLAYZONE & CAFE</h1>
-            <nav className="flex space-x-1 md:space-x-4">
+            {/* Ẩn navigation bar trên mobile, chỉ hiện trên md trở lên */}
+            <nav className="hidden md:flex space-x-1 md:space-x-4">
                 <NavButton view="dashboard" label="Bảng điều khiển" icon={<DashboardIcon className="w-5 h-5" />} />
                 <NavButton view="inventory" label="Kho xe" icon={<InventoryIcon className="w-5 h-5" />} />
                 <NavButton view="reports" label="Báo cáo" icon={<ReportsIcon className="w-5 h-5" />} />
@@ -302,39 +303,47 @@ export default function App() {
     }
   };
 
-  return (
-    <div className="min-h-screen flex flex-col">
-      <Header activeView={activeView} setActiveView={setActiveView} />
-      <main className="flex-grow p-4 md:p-6 lg:p-8">
-        {renderView()}
-      </main>
+    return (
+        <div className="min-h-screen flex flex-col pb-16 md:pb-0"> {/* chừa chỗ cho bottom nav trên mobile */}
+            <Header activeView={activeView} setActiveView={setActiveView} />
+            <main className="flex-grow p-2 sm:p-4 md:p-6 lg:p-8">
+                {renderView()}
+            </main>
 
-      {/* --- MODALS --- */}
-      <StartSessionModal
-        isOpen={isStartSessionModalOpen}
-        onClose={() => setStartSessionModalOpen(false)}
-        zoneId={selectedZone}
-        cars={cars.filter(c => c.status === 'Sẵn sàng')}
-        onStart={handleStartSession}
-      />
-      <OrderModal
-        isOpen={isOrderModalOpen}
-        onClose={() => setOrderModalOpen(false)}
-        session={selectedSession}
-        onAddOrder={handleAddOrder}
-        menuItems={menuItems}
-      />
-       <CheckoutModal
-        isOpen={isCheckoutModalOpen}
-        onClose={() => setCheckoutModalOpen(false)}
-        session={selectedSession}
-        onCheckout={handleCheckout}
-        now={now}
-        menuItems={menuItems}
-        billingConfig={billingConfig}
-      />
-    </div>
-  );
+            {/* --- BOTTOM NAVIGATION BAR MOBILE --- */}
+            <nav className="fixed bottom-0 left-0 right-0 z-40 bg-gray-900 border-t border-gray-800 flex justify-around items-center h-16 md:hidden">
+                <button onClick={() => setActiveView('dashboard')} className={`flex flex-col items-center flex-1 py-2 ${activeView === 'dashboard' ? 'text-cyan-400' : 'text-gray-400 hover:text-cyan-300'}`}> <DashboardIcon className="w-7 h-7 mb-1" /> <span className="text-xs">Trang chủ</span> </button>
+                <button onClick={() => setActiveView('inventory')} className={`flex flex-col items-center flex-1 py-2 ${activeView === 'inventory' ? 'text-cyan-400' : 'text-gray-400 hover:text-cyan-300'}`}> <InventoryIcon className="w-7 h-7 mb-1" /> <span className="text-xs">Kho xe</span> </button>
+                <button onClick={() => setActiveView('reports')} className={`flex flex-col items-center flex-1 py-2 ${activeView === 'reports' ? 'text-cyan-400' : 'text-gray-400 hover:text-cyan-300'}`}> <ReportsIcon className="w-7 h-7 mb-1" /> <span className="text-xs">Báo cáo</span> </button>
+                <button onClick={() => setActiveView('settings')} className={`flex flex-col items-center flex-1 py-2 ${activeView === 'settings' ? 'text-cyan-400' : 'text-gray-400 hover:text-cyan-300'}`}> <SettingsIcon className="w-7 h-7 mb-1" /> <span className="text-xs">Cài đặt</span> </button>
+            </nav>
+
+            {/* --- MODALS --- */}
+            <StartSessionModal
+                isOpen={isStartSessionModalOpen}
+                onClose={() => setStartSessionModalOpen(false)}
+                zoneId={selectedZone}
+                cars={cars.filter(c => c.status === 'Sẵn sàng')}
+                onStart={handleStartSession}
+            />
+            <OrderModal
+                isOpen={isOrderModalOpen}
+                onClose={() => setOrderModalOpen(false)}
+                session={selectedSession}
+                onAddOrder={handleAddOrder}
+                menuItems={menuItems}
+            />
+             <CheckoutModal
+                isOpen={isCheckoutModalOpen}
+                onClose={() => setCheckoutModalOpen(false)}
+                session={selectedSession}
+                onCheckout={handleCheckout}
+                now={now}
+                menuItems={menuItems}
+                billingConfig={billingConfig}
+            />
+        </div>
+    );
 }
 
 
@@ -881,11 +890,29 @@ const StartSessionModal: React.FC<{
         );
     };
 
-    const filteredCars = cars.filter(car => car.name.toLowerCase().includes(searchTerm.toLowerCase()) || car.id.toLowerCase().includes(searchTerm.toLowerCase()));
+        // Lọc xe theo loại khu vực
+        let allowedType: 'Xe đua' | 'Xe công trình' | undefined = undefined;
+        if (zoneId) {
+            if (zoneId.toLowerCase().includes('đua')) allowedType = 'Xe đua';
+            else if (zoneId.toLowerCase().includes('công trình')) allowedType = 'Xe công trình';
+        }
+        const filteredCars = cars.filter(car => {
+            const matchSearch = car.name.toLowerCase().includes(searchTerm.toLowerCase()) || car.id.toLowerCase().includes(searchTerm.toLowerCase());
+            if (allowedType) return matchSearch && car.type === allowedType;
+            return matchSearch;
+        });
     
     return (
         <Modal isOpen={isOpen} onClose={onClose} title={`Bắt đầu phiên chơi tại ${zoneId}`}>
             <div className="flex flex-col h-full">
+                {/* Nút bắt đầu đặt ở trên */}
+                <button
+                    onClick={() => onStart(selectedCarIds)}
+                    disabled={selectedCarIds.length === 0}
+                    className="mb-4 w-full bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-3 rounded-lg transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed"
+                >
+                    Bắt đầu phiên với {selectedCarIds.length} xe
+                </button>
                 <input
                     type="text"
                     placeholder="Tìm xe theo tên hoặc ID..."
@@ -908,20 +935,11 @@ const StartSessionModal: React.FC<{
                                     <span className="font-semibold">{car.name}</span>
                                     <span className="text-sm text-gray-400 ml-2">({car.type})</span>
                                 </span>
-                                {isSelected ? <CheckCircleIcon className="w-6 h-6 text-white"/> : <CarStatusBadge status={car.status}/>}
+                                {isSelected ? <CheckCircleIcon className="w-6 h-6 text-white"/> : <CarStatusBadge status={car.status}/>} 
                             </button>
                         );
                     })}
                     {filteredCars.length === 0 && <p className="text-center text-gray-400 py-4">Không tìm thấy xe phù hợp.</p>}
-                </div>
-                 <div className="mt-6">
-                    <button
-                        onClick={() => onStart(selectedCarIds)}
-                        disabled={selectedCarIds.length === 0}
-                        className="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-3 rounded-lg transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed"
-                    >
-                        Bắt đầu phiên với {selectedCarIds.length} xe
-                    </button>
                 </div>
             </div>
         </Modal>
