@@ -1,6 +1,7 @@
 
 
 import React, { useState, useEffect, useCallback } from 'react';
+import './index.css';
 import { AppView, Car, CarStatus, CompletedTransaction, MenuItem, OrderItem, PaymentMethod, PlaySession, BillingConfig, Expense, ExpenseCategory } from './types';
 import { PLAY_ZONES } from './constants';
 import { DashboardIcon, InventoryIcon, ReportsIcon, PlusIcon, XIcon, ClockIcon, CarIcon, CoffeeIcon, CheckCircleIcon, SettingsIcon, EditIcon, TrashIcon } from './components/Icons';
@@ -22,29 +23,29 @@ const formatDuration = (ms: number) => {
 
 // --- HELPER COMPONENTS ---
 const Header: React.FC<{ activeView: AppView; setActiveView: (view: AppView) => void }> = ({ activeView, setActiveView }) => {
-  const NavButton: React.FC<{ view: AppView; label: string; icon: React.ReactNode }> = ({ view, label, icon }) => (
-    <button
-      onClick={() => setActiveView(view)}
-      className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-all duration-200 ${
-        activeView === view ? 'bg-cyan-500 text-white shadow-lg' : 'hover:bg-gray-700'
-      }`}
-    >
-      {icon}
-      <span className="hidden md:inline">{label}</span>
-    </button>
-  );
+    const NavButton: React.FC<{ view: AppView; label: string; icon: React.ReactNode }> = ({ view, label, icon }) => (
+        <button
+            onClick={() => setActiveView(view)}
+            className={`flex flex-col items-center justify-center space-y-1 md:flex-row md:space-y-0 md:space-x-2 px-2 py-2 md:px-3 md:py-2 rounded-lg transition-all duration-200 text-xs md:text-base ${
+                activeView === view ? 'bg-cyan-500 text-white shadow-lg' : 'hover:bg-gray-700'
+            }`}
+        >
+            {icon}
+            <span className="hidden sm:inline">{label}</span>
+        </button>
+    );
 
-  return (
-    <header className="bg-gray-800 shadow-md p-4 flex justify-between items-center sticky top-0 z-30">
-      <h1 className="text-xl md:text-2xl font-bold text-cyan-400">PLAYZONE & CAFE</h1>
-      <nav className="flex space-x-2 md:space-x-4">
-        <NavButton view="dashboard" label="Bảng điều khiển" icon={<DashboardIcon className="w-5 h-5" />} />
-        <NavButton view="inventory" label="Kho xe" icon={<InventoryIcon className="w-5 h-5" />} />
-        <NavButton view="reports" label="Báo cáo" icon={<ReportsIcon className="w-5 h-5" />} />
-        <NavButton view="settings" label="Cài đặt" icon={<SettingsIcon className="w-5 h-5" />} />
-      </nav>
-    </header>
-  );
+    return (
+        <header className="bg-gray-800 shadow-md p-2 md:p-4 flex justify-between items-center sticky top-0 z-30">
+            <h1 className="text-lg md:text-2xl font-bold text-cyan-400">PLAYZONE & CAFE</h1>
+            <nav className="flex space-x-1 md:space-x-4">
+                <NavButton view="dashboard" label="Bảng điều khiển" icon={<DashboardIcon className="w-5 h-5" />} />
+                <NavButton view="inventory" label="Kho xe" icon={<InventoryIcon className="w-5 h-5" />} />
+                <NavButton view="reports" label="Báo cáo" icon={<ReportsIcon className="w-5 h-5" />} />
+                <NavButton view="settings" label="Cài đặt" icon={<SettingsIcon className="w-5 h-5" />} />
+            </nav>
+        </header>
+    );
 };
 
 const Modal: React.FC<{ isOpen: boolean; onClose: () => void; title: string; children: React.ReactNode }> = ({ isOpen, onClose, title, children }) => {
@@ -348,32 +349,32 @@ const DashboardView: React.FC<{
     menuItems: MenuItem[];
     cars: Car[];
 }> = ({ activeSessions, availableZones, onStartSession, onAddOrder, onEndSession, now, menuItems, cars }) => (
-    <div className="grid grid-cols-1 gap-8">
+    <div className="grid grid-cols-1 gap-4 md:gap-8">
         <div>
-            <h2 className="text-2xl font-semibold mb-4 text-cyan-400 border-b-2 border-gray-700 pb-2">Phiên đang chơi ({activeSessions.length})</h2>
+            <h2 className="text-lg md:text-2xl font-semibold mb-2 md:mb-4 text-cyan-400 border-b border-gray-700 pb-1 md:pb-2">Phiên đang chơi ({activeSessions.length})</h2>
             {activeSessions.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-6">
                     {activeSessions.map(session => (
                         <SessionCard key={session.id} session={session} now={now} onAddOrder={onAddOrder} onEndSession={onEndSession} menuItems={menuItems} cars={cars} />
                     ))}
                 </div>
             ) : (
-                <div className="text-center py-10 bg-gray-800/50 rounded-lg">
+                <div className="text-center py-6 md:py-10 bg-gray-800/50 rounded-lg">
                     <p className="text-gray-400">Không có phiên nào đang hoạt động.</p>
                 </div>
             )}
         </div>
         <div>
-            <h2 className="text-2xl font-semibold mb-4 text-cyan-400 border-b-2 border-gray-700 pb-2">Khu vực trống ({availableZones.length})</h2>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
+            <h2 className="text-lg md:text-2xl font-semibold mb-2 md:mb-4 text-cyan-400 border-b border-gray-700 pb-1 md:pb-2">Khu vực trống ({availableZones.length})</h2>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6 gap-2 md:gap-4">
                 {availableZones.map(zoneId => (
                     <button
                         key={zoneId}
                         onClick={() => onStartSession(zoneId)}
-                        className="bg-gray-800 hover:bg-cyan-500 hover:text-white border-2 border-dashed border-gray-600 hover:border-cyan-500 rounded-lg p-4 h-32 flex flex-col justify-center items-center transition-all duration-200"
+                        className="bg-gray-800 hover:bg-cyan-500 hover:text-white border-2 border-dashed border-gray-600 hover:border-cyan-500 rounded-lg p-2 md:p-4 h-20 md:h-32 flex flex-col justify-center items-center transition-all duration-200"
                     >
-                        <PlusIcon className="w-8 h-8 mb-2 text-gray-500" />
-                        <span className="font-semibold text-center">{zoneId}</span>
+                        <PlusIcon className="w-6 h-6 md:w-8 md:h-8 mb-1 md:mb-2 text-gray-500" />
+                        <span className="font-semibold text-center text-xs md:text-base">{zoneId}</span>
                     </button>
                 ))}
             </div>
