@@ -1,0 +1,5 @@
+{
+  "name": "Playzone & Cafe Manager",
+  "description": "An application to manage RC car playtimes, cafe orders, inventory, and sales for the Playzone & Cafe. This app handles real-time session tracking, automated billing, order management, and provides revenue reports.",
+  "requestFramePermissions": []
+}
