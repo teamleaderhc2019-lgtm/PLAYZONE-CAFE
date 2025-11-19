@@ -3,6 +3,7 @@ import './index.css';
 import { AppView, Car, CarStatus, CompletedTransaction, MenuItem, OrderItem, PaymentMethod, PlaySession, BillingConfig, Expense } from './types';
 import { PLAY_ZONES } from './constants';
 import { supabase } from './lib/supabaseClient';
+import { Session } from '@supabase/supabase-js';
 
 // Components
 import Header from './components/common/Header';
@@ -17,6 +18,48 @@ import CheckoutModal from './components/modals/CheckoutModal';
 export default function App() {
     const [activeView, setActiveView] = useState<AppView>('dashboard');
     const [loading, setLoading] = useState(true);
+
+    // Authentication state
+    const [session, setSession] = useState<Session | null>(null);
+    const [userRole, setUserRole] = useState<'admin' | 'staff' | null>(null);
+
+    // Check for existing session on mount
+    useEffect(() => {
+        supabase.auth.getSession().then(({ data: { session } }) => {
+            setSession(session);
+            if (session) fetchUserRole(session.user.id);
+            else setLoading(false);
+        });
+
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+            setSession(session);
+            if (session) fetchUserRole(session.user.id);
+            else {
+                setUserRole(null);
+                setLoading(false);
+            }
+        });
+
+        return () => subscription.unsubscribe();
+    }, []);
+
+    const fetchUserRole = async (userId: string) => {
+        try {
+            const { data, error } = await supabase
+                .from('profiles')
+                .select('role')
+                .eq('id', userId)
+                .single();
+
+            if (error) throw error;
+            setUserRole(data?.role as 'admin' | 'staff');
+        } catch (error) {
+            console.error('Error fetching user role:', error);
+            setUserRole('staff');
+        } finally {
+            setLoading(false);
+        }
+    };
 
     // Data state
     const [cars, setCars] = useState<Car[]>([]);
@@ -268,11 +311,11 @@ export default function App() {
             default:
                 return (
                     <DashboardView
-                        activeSessions={activeSessions}
+                        sessions={activeSessions}
                         availableZones={availableZones}
-                        onStartSession={handleOpenStartSessionModal}
-                        onAddOrder={(session) => { setSelectedSession(session); setOrderModalOpen(true); }}
-                        onEndSession={(session) => { setSelectedSession(session); setCheckoutModalOpen(true); }}
+                        onOpenStartSessionModal={handleOpenStartSessionModal}
+                        onOpenOrderModal={(session) => { setSelectedSession(session); setOrderModalOpen(true); }}
+                        onOpenCheckoutModal={(session) => { setSelectedSession(session); setCheckoutModalOpen(true); }}
                         now={now}
                         menuItems={menuItems}
                         cars={cars}
@@ -283,7 +326,12 @@ export default function App() {
 
     return (
         <div className="min-h-screen bg-[#111315] text-gray-200 font-sans selection:bg-cyan-500/30">
-            <Header activeView={activeView} setActiveView={setActiveView} />
+            <Header
+                activeView={activeView}
+                setActiveView={setActiveView}
+                userRole={userRole}
+                onLogout={() => supabase.auth.signOut()}
+            />
 
             <main className="container mx-auto px-6 py-8">
                 {renderView()}

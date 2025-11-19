@@ -4,21 +4,29 @@ import { PlusIcon } from '../Icons';
 import SessionCard from '../common/SessionCard';
 
 const DashboardView: React.FC<{
-    activeSessions: PlaySession[];
+    sessions: PlaySession[];
     availableZones: string[];
-    onStartSession: (zoneId: string) => void;
-    onAddOrder: (session: PlaySession) => void;
-    onEndSession: (session: PlaySession) => void;
+    onOpenStartSessionModal: (zoneId: string) => void;
+    onOpenOrderModal: (session: PlaySession) => void;
+    onOpenCheckoutModal: (session: PlaySession) => void;
     now: number;
     menuItems: MenuItem[];
     cars: Car[];
-}> = ({ activeSessions, availableZones, onStartSession, onAddOrder, onEndSession, now, menuItems, cars }) => (
+}> = ({ sessions, availableZones, onOpenStartSessionModal, onOpenOrderModal, onOpenCheckoutModal, now, menuItems, cars }) => (
     <div className="space-y-8">
         <div>
-            <h2 className="text-xl font-semibold text-cyan-400 mb-4">Phiên đang chơi ({activeSessions.length})</h2>
+            <h2 className="text-xl font-semibold text-cyan-400 mb-4">Phiên đang chơi ({sessions.length})</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {activeSessions.map(session => (
-                    <SessionCard key={session.id} session={session} now={now} onAddOrder={onAddOrder} onEndSession={onEndSession} menuItems={menuItems} cars={cars} />
+                {sessions.map(session => (
+                    <SessionCard
+                        key={session.id}
+                        session={session}
+                        now={now}
+                        onAddOrder={onOpenOrderModal}
+                        onEndSession={onOpenCheckoutModal}
+                        menuItems={menuItems}
+                        cars={cars}
+                    />
                 ))}
             </div>
         </div>
@@ -30,7 +38,7 @@ const DashboardView: React.FC<{
                     {availableZones.map(zoneId => (
                         <button
                             key={zoneId}
-                            onClick={() => onStartSession(zoneId)}
+                            onClick={() => onOpenStartSessionModal(zoneId)}
                             className="group relative flex flex-col items-center justify-center h-32 rounded-lg border border-dashed border-gray-600 hover:border-cyan-500 hover:bg-gray-800/50 transition-all duration-200"
                         >
                             <div className="mb-2 p-2 rounded-full bg-gray-800 group-hover:bg-cyan-500/20 transition-colors">
