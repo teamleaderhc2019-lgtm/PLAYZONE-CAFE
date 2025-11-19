@@ -25,9 +25,7 @@ const InventoryView: React.FC<{
                         </div>
                         <div className="flex items-center justify-between mt-2">
                             <CarStatusBadge status={car.status} />
-                            {car.status !== 'Đang chơi' && (
-                                <button onClick={() => setSelectedCar(car)} className="text-xs text-cyan-400 hover:underline">Đổi</button>
-                            )}
+                            <button onClick={() => setSelectedCar(car)} className="text-xs text-cyan-400 hover:underline">Đổi trạng thái</button>
                         </div>
                     </div>
                 ))}
