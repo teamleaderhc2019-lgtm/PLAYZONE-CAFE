@@ -26,16 +26,10 @@ export default function App() {
     const [completed, setCompleted] = useState<CompletedTransaction[]>([]);
 
     // Local UI state
-    const [sessions, setSessions] = useState<PlaySession[]>(() => {
-        const saved = localStorage.getItem('playzone_sessions');
-        return saved ? JSON.parse(saved) : [];
-    });
+    const [sessions, setSessions] = useState<PlaySession[]>([]);
     const [now, setNow] = useState(Date.now());
 
-    // Persist sessions to localStorage
-    useEffect(() => {
-        localStorage.setItem('playzone_sessions', JSON.stringify(sessions));
-    }, [sessions]);
+    // Removed localStorage persistence
 
     const [isStartSessionModalOpen, setStartSessionModalOpen] = useState(false);
     const [isOrderModalOpen, setOrderModalOpen] = useState(false);
@@ -52,19 +46,22 @@ export default function App() {
                     { data: menuItemsData, error: menuItemsError },
                     { data: expensesData, error: expensesError },
                     { data: completedData, error: completedError },
-                    { data: configData, error: configError }
+                    { data: configData, error: configError },
+                    { data: sessionsData, error: sessionsError }
                 ] = await Promise.all([
                     supabase.from('cars').select('*').order('id', { ascending: true }),
                     supabase.from('menu_items').select('*').order('id', { ascending: true }),
                     supabase.from('expenses').select('*').order('date', { ascending: false }),
                     supabase.from('completed_transactions').select('*').order('completedAt', { ascending: false }),
                     supabase.from('billing_config').select('config').limit(1).single(),
+                    supabase.from('active_sessions').select('*')
                 ]);
 
                 if (carsError) throw carsError;
                 if (menuItemsError) throw menuItemsError;
                 if (expensesError) throw expensesError;
                 if (completedError) throw completedError;
+                if (sessionsError) throw sessionsError;
                 if (configError) console.warn('Could not fetch billing config, using defaults.');
 
                 setCars(carsData || []);
@@ -72,6 +69,18 @@ export default function App() {
                 setExpenses(expensesData || []);
                 setCompleted(completedData || []);
                 if (configData) setBillingConfig(configData.config);
+
+                // Map DB session format to App session format
+                if (sessionsData) {
+                    const mappedSessions: PlaySession[] = sessionsData.map((s: any) => ({
+                        id: s.id,
+                        zoneId: s.zone_id,
+                        carIds: s.car_ids,
+                        startTime: s.start_time,
+                        order: s.orders || []
+                    }));
+                    setSessions(mappedSessions);
+                }
 
             } catch (error: any) {
                 console.error("Error fetching initial data:", error);
@@ -112,6 +121,21 @@ export default function App() {
             order: [],
         };
 
+        // Insert into active_sessions
+        const { error: sessionError } = await supabase.from('active_sessions').insert({
+            id: newSession.id,
+            zone_id: newSession.zoneId,
+            car_ids: newSession.carIds,
+            start_time: newSession.startTime,
+            orders: newSession.order
+        });
+
+        if (sessionError) {
+            console.error("Error creating session:", sessionError);
+            alert("Lỗi: Không thể tạo phiên chơi mới.");
+            return;
+        }
+
         const { error } = await supabase.from('cars').update({ status: 'Đang chơi' }).in('id', carIds);
         if (error) {
             console.error("Error updating car status:", error);
@@ -130,9 +154,21 @@ export default function App() {
         setStartSessionModalOpen(true);
     };
 
-    const handleAddOrder = (orderItems: OrderItem[]) => {
+    const handleAddOrder = async (orderItems: OrderItem[]) => {
         if (!selectedSession) return;
-        setSessions(prev => prev.map(s => s.id === selectedSession.id ? { ...s, order: [...s.order, ...orderItems.filter(oi => oi.quantity > 0)] } : s));
+
+        const updatedOrder = [...selectedSession.order, ...orderItems.filter(oi => oi.quantity > 0)];
+
+        // Update active_sessions in DB
+        const { error } = await supabase.from('active_sessions').update({ orders: updatedOrder }).eq('id', selectedSession.id);
+
+        if (error) {
+            console.error("Error updating order:", error);
+            alert("Lỗi: Không thể cập nhật đơn hàng.");
+            return;
+        }
+
+        setSessions(prev => prev.map(s => s.id === selectedSession.id ? { ...s, order: updatedOrder } : s));
         setOrderModalOpen(false);
     };
 
@@ -167,6 +203,13 @@ export default function App() {
             console.error("Error saving transaction:", insertError);
             alert("Lỗi: Không thể lưu giao dịch.");
             return;
+        }
+
+        // Delete from active_sessions
+        const { error: deleteError } = await supabase.from('active_sessions').delete().eq('id', session.id);
+        if (deleteError) {
+            console.error("Error removing active session:", deleteError);
+            // We don't stop here because the transaction is already saved
         }
 
         const { error: updateError } = await supabase.from('cars').update({ status: 'Sẵn sàng' }).in('id', session.carIds);
