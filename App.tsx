@@ -343,6 +343,7 @@ export default function App() {
                         now={now}
                         menuItems={menuItems}
                         cars={cars}
+                        billingConfig={billingConfig}
                     />
                 );
         }

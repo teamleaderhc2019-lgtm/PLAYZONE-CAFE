@@ -1,6 +1,6 @@
 import React from 'react';
-import { PlaySession, MenuItem, Car } from '../../types';
-import { ClockIcon, CoffeeIcon } from '../Icons';
+import { PlaySession, MenuItem, Car, BillingConfig } from '../../types';
+import { ClockIcon, CoffeeIcon, CarIcon } from '../Icons';
 
 // Utility functions duplicated here or should be imported from a utils file?
 // For now, let's duplicate or better yet, create a utils file.
@@ -31,8 +31,17 @@ const SessionCard: React.FC<{
     onEndSession: (session: PlaySession) => void;
     menuItems: MenuItem[];
     cars: Car[];
-}> = ({ session, now, onAddOrder, onEndSession, menuItems, cars }) => {
+    billingConfig: BillingConfig;
+}> = ({ session, now, onAddOrder, onEndSession, menuItems, cars, billingConfig }) => {
     const duration = now - session.startTime;
+
+    // Calculate Play Cost
+    const totalSeconds = Math.floor(duration / 1000);
+    const freeSeconds = billingConfig.freePlayMinutes * 60;
+    const chargeableSeconds = Math.max(0, totalSeconds - freeSeconds);
+    const chargeableMinutes = Math.ceil(chargeableSeconds / 60);
+    const playCost = chargeableMinutes * billingConfig.playRatePerMinute;
+
     const orderCost = session.order.reduce((total, item) => {
         const menuItem = menuItems.find(mi => mi.id === item.menuItemId);
         return total + (menuItem ? menuItem.price * item.quantity : 0);
@@ -54,6 +63,15 @@ const SessionCard: React.FC<{
                     <ClockIcon className="w-5 h-5" />
                     <span className="text-2xl font-mono font-bold tracking-wider">{formatDuration(duration)}</span>
                 </div>
+            </div>
+
+            {/* Play Cost Section */}
+            <div className="px-4 pt-4 flex justify-between items-center bg-[#1e2329]">
+                <div className="flex items-center text-cyan-400">
+                    <CarIcon className="w-4 h-4 mr-2" />
+                    <span className="font-medium text-sm">Phí chơi RC:</span>
+                </div>
+                <span className="font-bold text-white">{formatCurrency(playCost)}</span>
             </div>
 
             {/* Order Section */}

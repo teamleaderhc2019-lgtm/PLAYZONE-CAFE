@@ -1,5 +1,5 @@
 import React from 'react';
-import { PlaySession, MenuItem, Car } from '../../types';
+import { PlaySession, MenuItem, Car, BillingConfig } from '../../types';
 import { PlusIcon } from '../Icons';
 import SessionCard from '../common/SessionCard';
 
@@ -12,7 +12,8 @@ const DashboardView: React.FC<{
     now: number;
     menuItems: MenuItem[];
     cars: Car[];
-}> = ({ sessions, availableZones, onOpenStartSessionModal, onOpenOrderModal, onOpenCheckoutModal, now, menuItems, cars }) => (
+    billingConfig: BillingConfig;
+}> = ({ sessions, availableZones, onOpenStartSessionModal, onOpenOrderModal, onOpenCheckoutModal, now, menuItems, cars, billingConfig }) => (
     <div className="space-y-8">
         <div>
             <h2 className="text-xl font-semibold text-cyan-400 mb-4">Phiên đang chơi ({sessions.length})</h2>
@@ -26,6 +27,7 @@ const DashboardView: React.FC<{
                         onEndSession={onOpenCheckoutModal}
                         menuItems={menuItems}
                         cars={cars}
+                        billingConfig={billingConfig}
                     />
                 ))}
             </div>
