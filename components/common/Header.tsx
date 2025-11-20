@@ -44,6 +44,9 @@ const Header: React.FC<{
                     <LogoutIcon className="w-5 h-5" />
                     <span className="hidden sm:inline">Thoát</span>
                 </button>
+                <span className="text-xs text-gray-500 ml-2 border border-gray-600 px-1 rounded">
+                    Role: {userRole || 'null'}
+                </span>
             </nav>
         </header>
     );

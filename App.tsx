@@ -14,6 +14,7 @@ import SettingsView from './components/views/SettingsView';
 import StartSessionModal from './components/modals/StartSessionModal';
 import OrderModal from './components/modals/OrderModal';
 import CheckoutModal from './components/modals/CheckoutModal';
+import LoginView from './components/views/LoginView';
 
 export default function App() {
     const [activeView, setActiveView] = useState<AppView>('dashboard');
@@ -52,7 +53,10 @@ export default function App() {
                 .single();
 
             if (error) throw error;
-            setUserRole(data?.role as 'admin' | 'staff');
+            console.log('Fetched user role raw:', data?.role);
+            const normalizedRole = data?.role?.toLowerCase();
+            console.log('Normalized role:', normalizedRole);
+            setUserRole(normalizedRole as 'admin' | 'staff');
         } catch (error) {
             console.error('Error fetching user role:', error);
             setUserRole('staff');
@@ -290,6 +294,10 @@ export default function App() {
         );
     }
 
+    if (!session) {
+        return <LoginView />;
+    }
+
     const renderView = () => {
         switch (activeView) {
             case 'inventory':
@@ -330,7 +338,16 @@ export default function App() {
                 activeView={activeView}
                 setActiveView={setActiveView}
                 userRole={userRole}
-                onLogout={() => supabase.auth.signOut()}
+                onLogout={async () => {
+                    // alert('Debug: Đang thực hiện đăng xuất...');
+                    try {
+                        await supabase.auth.signOut();
+                    } catch (e) {
+                        console.error('Logout error:', e);
+                    } finally {
+                        window.location.reload();
+                    }
+                }}
             />
 
             <main className="container mx-auto px-6 py-8">
