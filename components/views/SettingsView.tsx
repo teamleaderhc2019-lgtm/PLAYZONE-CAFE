@@ -108,6 +108,11 @@ const SettingsView: React.FC<{
         }
     };
 
+    const handleOpenExpenseModal = (expense: Expense | null) => {
+        setEditingExpense(expense);
+        setExpenseModalOpen(true);
+    }
+
     const handleSaveBillingConfig = async () => {
         const { error } = await supabase.from('billing_config').upsert({ id: 1, config: tempBillingConfig });
         if (error) {
@@ -118,17 +123,12 @@ const SettingsView: React.FC<{
         alert('Đã lưu cài đặt thành công!');
     };
 
-    const handleOpenExpenseModal = (expense: Expense | null) => {
-        setEditingExpense(expense);
-        setExpenseModalOpen(true);
-    }
-
-    const TabButton: React.FC<{ tabName: SettingsTab; label: string }> = ({ tabName, label }) => (
+    const TabButton = ({ tabName, label }: { tabName: SettingsTab; label: string }) => (
         <button
             onClick={() => setActiveTab(tabName)}
-            className={`px-4 py-3 font-semibold text-lg transition-colors duration-200 ${activeTab === tabName
-                    ? 'border-b-2 border-cyan-400 text-cyan-400'
-                    : 'border-b-2 border-transparent text-gray-400 hover:text-white'
+            className={`whitespace-nowrap px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${activeTab === tabName
+                ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/50 shadow-[0_0_10px_rgba(34,211,238,0.2)]'
+                : 'bg-gray-800 text-gray-400 border border-gray-700 hover:bg-gray-700 hover:text-gray-200'
                 }`}
         >
             {label}
@@ -139,7 +139,7 @@ const SettingsView: React.FC<{
         <div>
             <h2 className="text-3xl font-bold text-cyan-400 mb-6">Cài đặt hệ thống</h2>
 
-            <div className="flex border-b border-gray-700 mb-6">
+            <div className="flex overflow-x-auto space-x-3 pb-2 mb-6 no-scrollbar md:space-x-4 md:pb-0 md:mb-8">
                 <TabButton tabName="billing" label="Phí chơi RC" />
                 <TabButton tabName="menu" label="Menu Cafe" />
                 <TabButton tabName="cars" label="Kho xe" />
@@ -174,14 +174,31 @@ const SettingsView: React.FC<{
                             <h3 className="text-xl font-semibold text-cyan-400">Quản lý Menu Cafe</h3>
                             <button onClick={() => handleOpenMenuItemModal(null)} className="bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-2 px-4 rounded-lg flex items-center space-x-2"><PlusIcon className="w-5 h-5" /> <span>Thêm món</span></button>
                         </div>
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-left">
+                        {/* Mobile Card View */}
+                        <div className="md:hidden space-y-4">
+                            {menuItems.map(item => (
+                                <div key={item.id} className="bg-gray-700/50 p-4 rounded-lg border border-gray-600 flex justify-between items-center">
+                                    <div>
+                                        <h4 className="font-bold text-white">{item.name}</h4>
+                                        <p className="text-cyan-400 font-mono">{formatCurrency(item.price)}</p>
+                                    </div>
+                                    <div className="flex space-x-2">
+                                        <button onClick={() => handleOpenMenuItemModal(item)} className="p-2 bg-gray-800 rounded-full hover:bg-gray-700 border border-gray-600"><EditIcon className="w-5 h-5 text-yellow-400" /></button>
+                                        <button onClick={() => handleDeleteMenuItem(item.id)} className="p-2 bg-gray-800 rounded-full hover:bg-gray-700 border border-gray-600"><TrashIcon className="w-5 h-5 text-red-400" /></button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* Desktop Table View */}
+                        <div className="hidden md:block overflow-x-auto">
+                            <table className="w-full text-left min-w-[500px]">
                                 <thead className="border-b border-gray-700 text-gray-400">
                                     <tr><th className="p-3">Tên món</th><th className="p-3">Giá</th><th className="p-3 text-right">Hành động</th></tr>
                                 </thead>
                                 <tbody>
                                     {menuItems.map(item => (
-                                        <tr key={item.id} className="border-b border-gray-700/50">
+                                        <tr key={item.id} className="border-b border-gray-700/50 hover:bg-gray-700/30 transition-colors">
                                             <td className="p-3">{item.name}</td>
                                             <td className="p-3">{formatCurrency(item.price)}</td>
                                             <td className="p-3 text-right space-x-2">
@@ -202,8 +219,31 @@ const SettingsView: React.FC<{
                             <h3 className="text-xl font-semibold text-cyan-400">Quản lý Kho xe</h3>
                             <button onClick={() => handleOpenCarModal(null)} className="bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-2 px-4 rounded-lg flex items-center space-x-2"><PlusIcon className="w-5 h-5" /> <span>Thêm xe</span></button>
                         </div>
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-left">
+                        {/* Mobile Card View */}
+                        <div className="md:hidden space-y-4">
+                            {cars.map(car => (
+                                <div key={car.id} className="bg-gray-700/50 p-4 rounded-lg border border-gray-600">
+                                    <div className="flex justify-between items-start mb-2">
+                                        <div>
+                                            <span className="text-xs font-mono text-gray-400 bg-gray-800 px-2 py-1 rounded">{car.id}</span>
+                                            <h4 className="font-bold text-white mt-1">{car.name}</h4>
+                                        </div>
+                                        <div className="flex space-x-2">
+                                            <button onClick={() => handleOpenCarModal(car)} className="p-2 bg-gray-800 rounded-full hover:bg-gray-700 border border-gray-600"><EditIcon className="w-4 h-4 text-yellow-400" /></button>
+                                            <button onClick={() => handleDeleteCar(car.id)} className="p-2 bg-gray-800 rounded-full hover:bg-gray-700 border border-gray-600"><TrashIcon className="w-4 h-4 text-red-400" /></button>
+                                        </div>
+                                    </div>
+                                    <div className="flex justify-between text-sm">
+                                        <span className="text-gray-400">{car.type}</span>
+                                        <span className="text-cyan-400 font-mono">{formatCurrency(car.purchasePrice)}</span>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* Desktop Table View */}
+                        <div className="hidden md:block overflow-x-auto">
+                            <table className="w-full text-left min-w-[600px]">
                                 <thead className="border-b border-gray-700 text-gray-400">
                                     <tr>
                                         <th className="p-3">ID</th>
@@ -215,7 +255,7 @@ const SettingsView: React.FC<{
                                 </thead>
                                 <tbody>
                                     {cars.map(car => (
-                                        <tr key={car.id} className="border-b border-gray-700/50">
+                                        <tr key={car.id} className="border-b border-gray-700/50 hover:bg-gray-700/30 transition-colors">
                                             <td className="p-3 font-mono">{car.id}</td>
                                             <td className="p-3">{car.name}</td>
                                             <td className="p-3">{car.type}</td>
@@ -238,8 +278,33 @@ const SettingsView: React.FC<{
                             <h3 className="text-xl font-semibold text-cyan-400">Quản lý Chi phí</h3>
                             <button onClick={() => handleOpenExpenseModal(null)} className="bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-2 px-4 rounded-lg flex items-center space-x-2"><PlusIcon className="w-5 h-5" /> <span>Thêm chi phí</span></button>
                         </div>
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-left">
+                        {/* Mobile Card View */}
+                        <div className="md:hidden space-y-4">
+                            {expenses.length > 0 ? expenses.map(expense => (
+                                <div key={expense.id} className="bg-gray-700/50 p-4 rounded-lg border border-gray-600">
+                                    <div className="flex justify-between items-start mb-2">
+                                        <div>
+                                            <div className="text-xs text-gray-400 mb-1">{new Date(expense.date).toLocaleDateString('vi-VN')}</div>
+                                            <h4 className="font-bold text-white">{expense.name}</h4>
+                                        </div>
+                                        <div className="flex space-x-2">
+                                            <button onClick={() => handleOpenExpenseModal(expense)} className="p-2 bg-gray-800 rounded-full hover:bg-gray-700 border border-gray-600"><EditIcon className="w-4 h-4 text-yellow-400" /></button>
+                                            <button onClick={() => handleDeleteExpense(expense.id)} className="p-2 bg-gray-800 rounded-full hover:bg-gray-700 border border-gray-600"><TrashIcon className="w-4 h-4 text-red-400" /></button>
+                                        </div>
+                                    </div>
+                                    <div className="flex justify-between text-sm items-center">
+                                        <span className="px-2 py-1 bg-gray-800 rounded text-gray-300 text-xs">{expense.category}</span>
+                                        <span className="text-red-400 font-mono font-bold">-{formatCurrency(expense.amount)}</span>
+                                    </div>
+                                </div>
+                            )) : (
+                                <div className="text-center p-6 text-gray-400 bg-gray-800 rounded-lg">Chưa có khoản chi nào.</div>
+                            )}
+                        </div>
+
+                        {/* Desktop Table View */}
+                        <div className="hidden md:block overflow-x-auto">
+                            <table className="w-full text-left min-w-[600px]">
                                 <thead className="border-b border-gray-700 text-gray-400">
                                     <tr>
                                         <th className="p-3">Ngày</th>
@@ -251,7 +316,7 @@ const SettingsView: React.FC<{
                                 </thead>
                                 <tbody>
                                     {expenses.length > 0 ? expenses.map(expense => (
-                                        <tr key={expense.id} className="border-b border-gray-700/50">
+                                        <tr key={expense.id} className="border-b border-gray-700/50 hover:bg-gray-700/30 transition-colors">
                                             <td className="p-3">{new Date(expense.date).toLocaleDateString('vi-VN')}</td>
                                             <td className="p-3">{expense.name}</td>
                                             <td className="p-3">{expense.category}</td>

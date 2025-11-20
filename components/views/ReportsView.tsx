@@ -30,8 +30,43 @@ const ReportsView: React.FC<{ completedTransactions: CompletedTransaction[], men
 
             <div className="bg-gray-800 p-6 rounded-lg shadow-lg">
                 <h3 className="text-xl font-semibold mb-4 text-cyan-400">Chi tiết giao dịch hôm nay</h3>
-                <div className="overflow-x-auto">
-                    <table className="w-full text-left">
+                {/* Mobile Card View */}
+                <div className="md:hidden space-y-4">
+                    {todayTransactions.length > 0 ? todayTransactions.map(t => (
+                        <div key={t.id} className="bg-gray-700/50 p-4 rounded-lg border border-gray-600">
+                            <div className="flex justify-between items-start mb-2">
+                                <div>
+                                    <div className="text-xs text-gray-400 mb-1">{new Date(t.completedAt).toLocaleTimeString('vi-VN')}</div>
+                                    <h4 className="font-bold text-white">{t.zoneId}</h4>
+                                </div>
+                                <div className="text-right">
+                                    <div className="text-cyan-400 font-bold text-lg">{formatCurrency(t.totalCost ?? 0)}</div>
+                                    <div className="text-xs text-gray-400">{t.paymentMethod}</div>
+                                </div>
+                            </div>
+                            <div className="border-t border-gray-600 pt-2 mt-2 grid grid-cols-2 gap-2 text-sm">
+                                <div>
+                                    <span className="text-gray-400 block text-xs">Tiền chơi</span>
+                                    <span className="text-white">{formatCurrency(t.playCost ?? 0)}</span>
+                                </div>
+                                <div>
+                                    <span className="text-gray-400 block text-xs">Tiền món</span>
+                                    <span className="text-white">{formatCurrency(t.orderCost ?? 0)}</span>
+                                </div>
+                                <div className="col-span-2">
+                                    <span className="text-gray-400 block text-xs">Xe</span>
+                                    <span className="text-white text-xs">{t.carIds.join(', ')}</span>
+                                </div>
+                            </div>
+                        </div>
+                    )) : (
+                        <div className="text-center p-6 text-gray-400 bg-gray-800 rounded-lg">Chưa có giao dịch nào hôm nay.</div>
+                    )}
+                </div>
+
+                {/* Desktop Table View */}
+                <div className="hidden md:block overflow-x-auto">
+                    <table className="w-full text-left min-w-[800px]">
                         <thead className="border-b border-gray-700 text-gray-400">
                             <tr>
                                 <th className="p-3">Thời gian</th>

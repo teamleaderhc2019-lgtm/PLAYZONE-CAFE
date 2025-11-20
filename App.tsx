@@ -7,6 +7,7 @@ import { Session } from '@supabase/supabase-js';
 
 // Components
 import Header from './components/common/Header';
+import MobileTabBar from './components/common/MobileTabBar';
 import DashboardView from './components/views/DashboardView';
 import InventoryView from './components/views/InventoryView';
 import ReportsView from './components/views/ReportsView';
@@ -350,9 +351,15 @@ export default function App() {
                 }}
             />
 
-            <main className="container mx-auto px-6 py-8">
+            <main className="container mx-auto px-6 py-8 pb-24 md:pb-8">
                 {renderView()}
             </main>
+
+            <MobileTabBar
+                activeView={activeView}
+                setActiveView={setActiveView}
+                userRole={userRole}
+            />
 
             {/* Modals */}
             <StartSessionModal
