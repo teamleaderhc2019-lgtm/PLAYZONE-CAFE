@@ -14,21 +14,21 @@ const ReportsView: React.FC<{ completedTransactions: CompletedTransaction[], men
         <div>
             <h2 className="text-2xl font-semibold mb-6 text-cyan-400">Báo cáo doanh thu trong ngày ({today})</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <div className="bg-gray-800 p-6 rounded-lg shadow-lg">
+                <div className="bg-gray-800 p-4 md:p-6 rounded-lg shadow-lg">
                     <h3 className="text-gray-400 text-lg">Tổng doanh thu</h3>
                     <p className="text-4xl font-bold text-cyan-400 mt-2">{formatCurrency(totalRevenue)}</p>
                 </div>
-                <div className="bg-gray-800 p-6 rounded-lg shadow-lg">
+                <div className="bg-gray-800 p-4 md:p-6 rounded-lg shadow-lg">
                     <h3 className="text-gray-400 text-lg">Doanh thu RC</h3>
                     <p className="text-4xl font-bold text-white mt-2">{formatCurrency(rcRevenue)}</p>
                 </div>
-                <div className="bg-gray-800 p-6 rounded-lg shadow-lg">
+                <div className="bg-gray-800 p-4 md:p-6 rounded-lg shadow-lg">
                     <h3 className="text-gray-400 text-lg">Doanh thu Cafe</h3>
                     <p className="text-4xl font-bold text-white mt-2">{formatCurrency(cafeRevenue)}</p>
                 </div>
             </div>
 
-            <div className="bg-gray-800 p-6 rounded-lg shadow-lg">
+            <div className="bg-gray-800 p-3 md:p-6 rounded-lg shadow-lg">
                 <h3 className="text-xl font-semibold mb-4 text-cyan-400">Chi tiết giao dịch hôm nay</h3>
                 {/* Mobile Card View */}
                 <div className="md:hidden space-y-4">

@@ -146,7 +146,7 @@ const SettingsView: React.FC<{
                 <TabButton tabName="costs" label="Chi phí" />
             </div>
 
-            <div className="bg-gray-800 p-6 rounded-lg shadow-lg">
+            <div className="bg-gray-800 p-3 md:p-6 rounded-lg shadow-lg">
                 {activeTab === 'billing' && (
                     <div>
                         <h3 className="text-xl font-semibold mb-4 text-cyan-400">Cài đặt Phí chơi RC</h3>
