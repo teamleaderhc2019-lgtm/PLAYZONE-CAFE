@@ -246,10 +246,25 @@ export default function App() {
             completedAt: endTime,
         };
 
-        const { data: newTransaction, error: insertError } = await supabase.from('completed_transactions').insert(completedSession).select().single();
+        // Prepare payload for DB with camelCase (matching interface) and ISO timestamps
+        const dbPayload = {
+            id: session.id,
+            zoneId: session.zoneId,
+            carIds: session.carIds,
+            startTime: new Date(session.startTime).toISOString(),
+            endTime: new Date(endTime).toISOString(),
+            playCost: playCost,
+            orderCost: orderCost,
+            totalCost: totalCost,
+            paymentMethod: paymentMethod,
+            completedAt: new Date(endTime).toISOString(),
+            order: session.order
+        };
+
+        const { data: newTransaction, error: insertError } = await supabase.from('completed_transactions').insert(dbPayload).select().single();
         if (insertError || !newTransaction) {
             console.error("Error saving transaction:", insertError);
-            alert("Lỗi: Không thể lưu giao dịch.");
+            alert(`Lỗi: Không thể lưu giao dịch. Chi tiết: ${insertError.message}`);
             return;
         }
 
